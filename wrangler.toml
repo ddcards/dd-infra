@@ -1,14 +1,17 @@
 name = "diamond-deck"
-main = "src/worker.ts"
+main = "src/worker/index.ts"
 compatibility_date = "2024-01-01"
 
 [[d1_databases]]
 binding = "DB"
 database_name = "diamond-deck-db"
-database_id = "local"
+database_id = "6125d48c-feb4-42d0-843f-107b8d81bf9e"
 
 [env.development]
 [[env.development.d1_databases]]
 binding = "DB"
 database_name = "diamond-deck-db"
 database_id = "local"
+
+# Cloudflare account configuration
+account_id = "b4f6ffcf2f9484f6364f5eda8c6a60b0"
