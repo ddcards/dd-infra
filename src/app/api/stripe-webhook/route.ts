@@ -6,14 +6,25 @@ import { teams, players, orders } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 import { v4 as uuidv4 } from 'uuid'
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
-const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!
-
 export async function POST(request: NextRequest) {
+  if (!process.env.STRIPE_SECRET_KEY || !process.env.STRIPE_WEBHOOK_SECRET) {
+    return NextResponse.json(
+      { error: 'Stripe is not configured. Please add STRIPE_SECRET_KEY and STRIPE_WEBHOOK_SECRET to your environment variables.' },
+      { status: 500 }
+    )
+  }
+
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET
+
   try {
     const body = await request.text()
     const headersList = await headers()
-    const signature = headersList.get('stripe-signature')!
+    const signature = headersList.get('stripe-signature')
+
+    if (!signature) {
+      return NextResponse.json({ error: 'Missing stripe-signature header' }, { status: 400 })
+    }
 
     let event: Stripe.Event
 

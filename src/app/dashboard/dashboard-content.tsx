@@ -9,7 +9,7 @@ import { useEffect } from 'react'
 
 interface DashboardContentProps {
   user: {
-    email: string
+    email?: string
   }
 }
 
@@ -96,7 +96,7 @@ export default function DashboardContent({ user }: DashboardContentProps) {
             <CardContent>
               <div className="space-y-2">
                 <div className="text-sm">
-                  <span className="font-medium">Email:</span> {user.email}
+                  <span className="font-medium">Email:</span> {user.email || 'N/A'}
                 </div>
                 <form action="/auth/signout" method="post">
                   <Button variant="outline" size="sm" type="submit">
