@@ -5,7 +5,8 @@ import { teams, players } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 import TeamContent from './team-content'
 
-export default async function TeamPage({ params }: { params: { id: string } }) {
+export default async function TeamPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -14,7 +15,7 @@ export default async function TeamPage({ params }: { params: { id: string } }) {
   }
 
   const team = await db.query.teams.findFirst({
-    where: eq(teams.id, params.id),
+    where: eq(teams.id, id),
   })
 
   if (!team) {
@@ -26,7 +27,7 @@ export default async function TeamPage({ params }: { params: { id: string } }) {
   }
 
   const teamPlayers = await db.query.players.findMany({
-    where: eq(players.teamId, params.id),
+    where: eq(players.teamId, id),
   })
 
   return <TeamContent team={team} players={teamPlayers} />
