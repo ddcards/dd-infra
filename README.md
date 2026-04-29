@@ -7,22 +7,23 @@ A web application where sports coaches can purchase, design, and order custom ph
 - **Framework**: Next.js (App Router)
 - **Styling**: Tailwind CSS + shadcn/ui
 - **Authentication**: Supabase Auth
-- **Database**: Cloudflare D1 (accessed via Drizzle ORM)
+- **Database**: Supabase Postgres (via Drizzle ORM)
 - **Storage**: Cloudflare R2 (for raw photos and rendered cards)
 - **Payments**: Stripe Checkout & Webhooks
 - **Background Removal**: Photoroom API
 - **Image Generation**: Placid.app API
 - **Print Fulfillment**: MakePlayingCards (MPC) API
-- **Hosting**: Cloudflare Pages (Frontend) & Cloudflare Workers (Backend APIs/Webhooks)
+- **Hosting**: Vercel (CI/CD + serverless runtime)
 
 ## Getting Started
 
 ### Prerequisites
 
 - Node.js 18+ installed
-- Supabase project created
-- Cloudflare account with D1 and R2 configured
+- Supabase project (Auth + Postgres database + service role key + connection string)
+- Vercel account (for production hosting)
 - Stripe account configured
+- Cloudflare R2 bucket (optional – only required for the upload flow)
 - API keys for Photoroom, Placid.app, and MakePlayingCards
 
 ### Installation
@@ -32,18 +33,20 @@ A web application where sports coaches can purchase, design, and order custom ph
 cp .env.local.example .env.local
 ```
 
-2. Fill in your environment variables in `.env.local`:
-- Supabase URL and anon key
-- Stripe secret and publishable keys
-- Cloudflare credentials (account ID, API token, R2 credentials)
-- API keys for Photoroom, Placid.app, and MakePlayingCards
+2. Fill in your environment variables in `.env.local` (see `.env.local.example` for the full list):
+- `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_DB_URL` (Postgres connection string)
+- `NEXT_PUBLIC_APP_URL`
+- Stripe secret/publishable keys + webhook secret
+- Cloudflare R2 credentials (if using R2 for uploads)
+- Optional API keys for Photoroom, Placid.app, and MakePlayingCards
 
 3. Install dependencies:
 ```bash
 npm install
 ```
 
-4. Run database migrations:
+4. Run database migrations (requires `SUPABASE_DB_URL` to be set):
 ```bash
 npx drizzle-kit push
 ```
@@ -109,38 +112,26 @@ src/
 
 ## Deployment
 
-### GitHub Integration
+### Vercel Deployment
 
-The application is set up for automatic deployment to Cloudflare Pages via GitHub Actions. When you push to the `main` branch, the workflow will:
+1. Connect the repository to Vercel (or run `vercel` locally to link the project).
+2. In the Vercel dashboard, add the environment variables listed above (Production + Preview).
+3. Push to `main` (or open a PR) and Vercel will run `npm install && npm run build` automatically.
+4. Use `vercel logs <deployment-url>` to monitor runtime issues.
 
-1. Build the Next.js application
-2. Deploy to Cloudflare Pages
+If you need to test production settings locally:
 
-#### Required GitHub Secrets
-
-Configure these secrets in your GitHub repository settings (Settings → Secrets and variables → Actions):
-
-- `NEXT_PUBLIC_SUPABASE_URL` - Your Supabase project URL
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Your Supabase anon key
-- `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` - Your Stripe publishable key
-- `NEXT_PUBLIC_APP_URL` - Your production app URL
-- `CLOUDFLARE_API_TOKEN` - Your Cloudflare API token
-- `CLOUDFLARE_ACCOUNT_ID` - Your Cloudflare account ID
-
-#### Manual Deployment
-
-To manually trigger a deployment:
-1. Go to the Actions tab in GitHub
-2. Select "Deploy to Cloudflare Pages"
-3. Click "Run workflow"
+```bash
+vercel env pull .env.production
+npm run build && npm start
+```
 
 ### Infrastructure
 
-The application is designed to be deployed on:
-- **Frontend**: Cloudflare Pages
-- **Backend APIs**: Cloudflare Workers
-- **Database**: Cloudflare D1
-- **Storage**: Cloudflare R2
+The application now runs on:
+- **Frontend + APIs**: Next.js on Vercel Serverless Functions
+- **Database**: Supabase Postgres (queried via Drizzle ORM)
+- **Storage**: Cloudflare R2 (presigned uploads) – replaceable with other S3-compatible storage
 
 ## License
 
